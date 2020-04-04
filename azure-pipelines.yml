@@ -2,9 +2,9 @@ trigger:
 - master
 
 variables:
-  azureSubscription: '$(AzureSubscription)'
-  azureResourceManagerConnection: '$(AzureResourceManagerConnection)'
-  subscriptionId: '$(SubscriptionId)'
+  azureSubscription: 'Production'
+  azureResourceManagerConnection: '739f2117-78ef-4504-a0b1-5c606857538c'
+  subscriptionId: '4990afa1-2807-4c9a-a369-6202013eae45'
   location: 'West Europe'
   resourceGroupName: 'azure-functions-servicebus-test'
   functionAppName: 'azure-functions-servicebus-test'
