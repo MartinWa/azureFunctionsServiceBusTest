@@ -8,16 +8,16 @@ trigger:
 
 variables:
   # Azure Resource Manager connection created during pipeline creation
-  azureSubscription: '0c342580-f0a1-407a-bffe-f93c855c5daf'
+  azureSubscription: '739f2117-78ef-4504-a0b1-5c606857538c'
 
   # Function app name
-  functionAppName: ''
+  functionAppName: 'azure-functions-servicebus-test'
 
   # Agent VM image name
   vmImageName: 'vs2017-win2016'
 
   # Working Directory
-  workingDirectory: '$(System.DefaultWorkingDirectory)/'
+  workingDirectory: '$(System.DefaultWorkingDirectory)'
 
 stages:
 - stage: Build
@@ -58,7 +58,7 @@ stages:
   jobs:
   - deployment: Deploy
     displayName: Deploy
-    environment: 'development'
+    environment: $(functionAppName)
     pool:
       vmImage: $(vmImageName)
 
