@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Test.Settings;
+using Test.AzureServiceBus;
 
 [assembly: FunctionsStartup(typeof(Test.Startup))]
 namespace Test
@@ -17,9 +18,9 @@ namespace Test
                 .AddEnvironmentVariables()
                 .Build();
 
-            var loggerFactory = new LoggerFactory();
-
             builder.Services.Configure<ServiceBusSettings>(configuration.GetSection("ServiceBus"));
+            builder.Services.AddSingleton<IServiceBusProxy, ServiceBusProxy>();   
+            builder.Services.AddSingleton<ILogger>(x => x.GetService<ILogger<Startup>>());
         }
     }
 }
