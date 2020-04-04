@@ -1,0 +1,345 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "functionsAppserviceplanName": {
+      "type": "string"
+    },
+    "functionsAppName": {
+      "type": "string"
+    },
+    "functionsAppInsightsName": {
+      "type": "string"
+    },
+    "storageAccountName": {
+      "type": "string"
+    },
+    "serviceBusName": {
+      "type": "string"
+    },
+    "serviceBusSku": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "serviceBusSenderAccess": "Sender",
+    "serviceBusSubscriberAccess": "Subscriber",
+    "articleViewedTopicName": "articleViewed",
+    "articleViewValidatedTopicName": "articleViewValidated",
+    "articleViewStoredInDbTopicName": "articleViewStoredInDb",
+    "updateSearchSubscriptionName": "updateSearch",
+    "updateCacheSubscriptionName": "updateCache",
+    "writeArticleViewToStatisticsDbSubscriptionName": "writeArticleViewToStatisticsDb",
+    "validateArticleViewForUserSubscriptionName": "validateArticleViewForUser"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-02-01",
+      "name": "[parameters('functionsAppServicePlanName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic"
+      },
+      "properties": {
+        "name": "[parameters('functionsAppServicePlanName')]",
+        "computeMode": "Dynamic"
+      },
+      "dependsOn": [
+      ]
+    },
+    {
+      "comments": "Function App Service",
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[parameters('functionsAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "tags": {
+        "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', parameters('functionsAppServicePlanName'))]": "Resource"
+      },
+      "scale": null,
+      "properties": {
+        "enabled": true,
+        "hostNameSslStates": [
+          {
+            "name": "[concat(parameters('functionsAppName'),'.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Standard",
+            "ipBasedSslState": "Disabled"
+          },
+          {
+            "name": "[concat(parameters('functionsAppName'),'.scm.azurewebsites.net')]",
+            "sslState": "Disabled",
+            "hostType": "Repository",
+            "ipBasedSslState": "Disabled"
+          }
+        ],
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('functionsAppServicePlanName'))]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-08-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[parameters('functionsAppServicePlanName')]",
+            "[resourceId('microsoft.insights/components/', parameters('functionsAppInsightsName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+          ],
+          "properties": {
+            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')),'2015-05-01-preview').key1)]",
+            "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('storageAccountName'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName')),'2015-05-01-preview').key1)]",
+            "WEBSITE_CONTENTSHARE": "[concat(toLower(parameters('functionsAppServicePlanName')), 'htdu')]",
+            "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(concat('microsoft.insights/components/', parameters('functionsAppInsightsName'))).InstrumentationKey]",
+            "FUNCTIONS_EXTENSION_VERSION": "~3",
+            "APPLICATIONINSIGHTS_CONNECTION_STRING": "[reference(concat('microsoft.insights/components/', parameters('functionsAppInsightsName'))).ConnectionString]",
+            "ApplicationInsightsAgent_EXTENSION_VERSION": "~2",
+            "ServiceBus:ConnectionStringSender": "[listkeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusName'), 'RootManageSharedAccessKey'), '2017-04-01').primaryConnectionString]",
+            "ServiceBus:ConnectionStringSubscriber": "[listkeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusName'), 'RootManageSharedAccessKey'), '2017-04-01').primaryConnectionString]",
+            "ServiceBus:ConnectionStringManager": "[listkeys(resourceId('Microsoft.ServiceBus/namespaces/authorizationRules', parameters('serviceBusName'), 'RootManageSharedAccessKey'), '2017-04-01').primaryConnectionString]"
+          }
+        }
+      ],
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', parameters('functionsAppName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+      ]
+    },
+    {
+      "name": "[parameters('functionsAppInsightsName')]",
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2015-05-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', parameters('functionsAppName'))]"
+      ],
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "applicationId": "[resourceId('Microsoft.Web/sites', parameters('functionsAppName'))]"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "sku": {
+        "name": "Standard_GRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "name": "[parameters('storageAccountName')]",
+      "apiVersion": "2017-10-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+      ],
+      "properties": {
+        "supportsHttpsTrafficOnly": true,
+        "accessTier": "Hot"
+      }
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces",
+      "sku": {
+        "name": "[parameters('serviceBusSku')]",
+        "tier": "[parameters('serviceBusSku')]"
+      },
+      "name": "[parameters('serviceBusName')]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "tags": {
+      },
+      "scale": null,
+      "properties": {
+        "serviceBusEndpoint": "[concat('https://',  parameters('serviceBusName'),'.servicebus.windows.net:443/')]"
+      },
+      "dependsOn": [
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('serviceBusSenderAccess'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "scale": null,
+      "properties": {
+        "rights": [
+          "Send"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/AuthorizationRules",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('serviceBusSubscriberAccess'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "scale": null,
+      "properties": {
+        "rights": [
+          "Listen"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewedTopicName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "scale": null,
+      "properties": {
+        "defaultMessageTimeToLive": "P14D",
+        "maxSizeInMegabytes": 1024,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "PT10M",
+        "enableBatchedOperations": true,
+        "supportOrdering": false,
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+        "enablePartitioning": true,
+        "enableExpress": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewedTopicName'), '/', variables('validateArticleViewForUserSubscriptionName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "lockDuration": "PT1M",
+        "requiresSession": false,
+        "defaultMessageTimeToLive": "P10675199DT2H48M5.4775807S",
+        "deadLetteringOnMessageExpiration": true,
+        "messageCount": 0,
+        "maxDeliveryCount": 10,
+        "status": "Active",
+        "enableBatchedOperations": true,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "P1D",
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('serviceBusName'), variables('articleViewedTopicName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewValidatedTopicName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "scale": null,
+      "properties": {
+        "defaultMessageTimeToLive": "P14D",
+        "maxSizeInMegabytes": 1024,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "PT10M",
+        "enableBatchedOperations": true,
+        "supportOrdering": false,
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+        "enablePartitioning": true,
+        "enableExpress": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewValidatedTopicName'), '/', variables('writeArticleViewToStatisticsDbSubscriptionName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "lockDuration": "PT1M",
+        "requiresSession": false,
+        "defaultMessageTimeToLive": "P10675199DT2H48M5.4775807S",
+        "deadLetteringOnMessageExpiration": true,
+        "messageCount": 0,
+        "maxDeliveryCount": 10,
+        "status": "Active",
+        "enableBatchedOperations": true,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "P1D",
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('serviceBusName'), variables('articleViewValidatedTopicName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewStoredInDbTopicName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "scale": null,
+      "properties": {
+        "defaultMessageTimeToLive": "P14D",
+        "maxSizeInMegabytes": 1024,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "PT10M",
+        "enableBatchedOperations": true,
+        "supportOrdering": false,
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+        "enablePartitioning": true,
+        "enableExpress": false
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewStoredInDbTopicName'), '/', variables('updateCacheSubscriptionName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "lockDuration": "PT1M",
+        "requiresSession": false,
+        "defaultMessageTimeToLive": "P10675199DT2H48M5.4775807S",
+        "deadLetteringOnMessageExpiration": true,
+        "messageCount": 0,
+        "maxDeliveryCount": 10,
+        "status": "Active",
+        "enableBatchedOperations": true,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "P1D",
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('serviceBusName'), variables('articleViewStoredInDbTopicName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ServiceBus/namespaces/topics/subscriptions",
+      "name": "[concat(parameters('serviceBusName'), '/', variables('articleViewStoredInDbTopicName'), '/', variables('updateSearchSubscriptionName'))]",
+      "apiVersion": "2017-04-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "lockDuration": "PT1M",
+        "requiresSession": false,
+        "defaultMessageTimeToLive": "P10675199DT2H48M5.4775807S",
+        "deadLetteringOnMessageExpiration": true,
+        "messageCount": 0,
+        "maxDeliveryCount": 10,
+        "status": "Active",
+        "enableBatchedOperations": true,
+        "requiresDuplicateDetection": true,
+        "duplicateDetectionHistoryTimeWindow": "P1D",
+        "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ServiceBus/namespaces', parameters('serviceBusName'))]",
+        "[resourceId('Microsoft.ServiceBus/namespaces/topics', parameters('serviceBusName'), variables('articleViewStoredInDbTopicName'))]"
+      ]
+    }
+  ]
+}

@@ -1,25 +1,45 @@
-# .NET Core Function App to Windows on Azure
-# Build a .NET Core function app and deploy it to Azure as a Windows function App.
-# Add steps that analyze code, save build artifacts, deploy, and more:
-# https://docs.microsoft.com/en-us/azure/devops/pipelines/languages/dotnet-core
-
 trigger:
 - master
 
 variables:
-  # Azure Resource Manager connection created during pipeline creation
-  azureSubscription: '739f2117-78ef-4504-a0b1-5c606857538c'
-
-  # Function app name
+  azureSubscription: '$(AzureSubscription)'
+  azureResourceManagerConnection: '$(AzureResourceManagerConnection)'
+  subscriptionId: '$(SubscriptionId)'
+  location: 'West Europe'
+  resourceGroupName: 'azure-functions-servicebus-test'
   functionAppName: 'azure-functions-servicebus-test'
-
-  # Agent VM image name
   vmImageName: 'windows-2019'
-
-  # Working Directory
   workingDirectory: '$(System.DefaultWorkingDirectory)'
+  functionsAppserviceplanName: 'azure-functions-servicebus-test'
+  functionsAppName: 'azure-functions-servicebus-test'
+  functionsAppInsightsName: 'azure-functions-servicebus-test'
+  storageAccountName: 'azfuncservicebustest'
+  serviceBusName: 'azure-functions-servicebus-test'
+  serviceBusSku: 'Standard'
 
 stages:
+- stage: ARM
+  displayName: Create resources
+
+  jobs:
+  - job: ARM
+    pool:
+      vmImage: $(vmImageName)
+
+    steps:
+      - task: AzureResourceManagerTemplateDeployment@3
+        inputs:
+          deploymentScope: 'Resource Group'
+          azureResourceManagerConnection: $(azureResourceManagerConnection)
+          subscriptionId: $(subscriptionId)
+          action: 'Create Or Update Resource Group'
+          resourceGroupName: $(resourceGroupName)
+          location: $(location)
+          templateLocation: 'Linked artifact'
+          csmFile: 'template.json'          
+          overrideParameters: '-functionsAppserviceplanName $(functionsAppserviceplanName) -functionsAppName $(functionsAppName) -functionsAppInsightsName $(functionsAppInsightsName) -storageAccountName $(storageAccountName) -serviceBusName $(serviceBusName) -serviceBusSku $(serviceBusSku)'
+          deploymentMode: 'Incremental'
+
 - stage: Build
   displayName: Build stage
 
