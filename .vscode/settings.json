@@ -1,4 +1,12 @@
 {
+  "rest-client.environmentVariables": {
+    "local": {
+      "functionRoot": "http://localhost:7071"
+    },
+    "azure": {
+      "functionRoot": "https://azure-functions-servicebus-test.azurewebsites.net"
+    }
+  },
   "azureFunctions.deploySubpath": "bin/Release/netcoreapp3.1/publish",
   "azureFunctions.projectLanguage": "C#",
   "azureFunctions.projectRuntime": "~3",

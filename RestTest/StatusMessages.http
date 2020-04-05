@@ -1,0 +1,2 @@
+GET {{functionRoot}}/api/status/messages HTTP/1.1
+

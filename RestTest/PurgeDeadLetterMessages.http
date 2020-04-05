@@ -1,0 +1,12 @@
+POST {{functionRoot}}/api/articleViewed/validateArticleViewForUser/purge HTTP/1.1
+
+####
+
+POST {{functionRoot}}/api/articleViewValidated/writeArticleViewToStatisticsDb/purge HTTP/1.1
+####
+
+POST {{functionRoot}}/api/articleViewStoredInDb/updateSearch/purge HTTP/1.1
+####
+
+POST {{functionRoot}}/api/articleViewStoredInDb/updateCache/purge HTTP/1.1
+####
