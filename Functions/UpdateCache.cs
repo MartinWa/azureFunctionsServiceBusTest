@@ -28,7 +28,8 @@ namespace Test.Functions
                 stopWatch.Start();
                 var messages = sbMessages.Select(m => m.BodyAs<ArticleViewStoredInDb>()).ToList();
                 _log.LogTrace($"ReceiveBatch updating cache, count: {messages.Count}.");
-                // Code to do work
+                // Code to do work 
+                await Task.CompletedTask;
                 stopWatch.Stop();
                 _log.LogTrace($"Done ({stopWatch.Elapsed}) batch updating cache");
             }

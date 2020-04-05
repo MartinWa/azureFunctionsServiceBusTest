@@ -66,11 +66,15 @@ namespace Test.Functions
         private async Task InsertViews(IEnumerable<ViewDbModel> viewModels)
         {
             // Code to write to db
+            await Task.CompletedTask;
+
         }
 
         private async Task InsertViewUserGroups(IEnumerable<UserGroupDbModel> userGroupModels)
         {
             // Code to write to db
+            await Task.CompletedTask;
+
         }
 
         private static IEnumerable<(ViewDbModel messageModel, IEnumerable<UserGroupDbModel> userGroupModels)> CreateDbModelBatches(IEnumerable<ArticleViewValidated> messages) =>

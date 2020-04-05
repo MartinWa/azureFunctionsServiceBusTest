@@ -37,6 +37,8 @@ namespace Test.Functions
                     foreach (var batch in batches)
                     {
                         // Code to do work
+                        await Task.CompletedTask;
+
                     }
                 }
                 stopWatch.Stop();
