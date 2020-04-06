@@ -11,5 +11,12 @@
             "Function": "Warning",
             "default": "Warning"
         }
+    },
+    "extensions": {
+        "serviceBus": {
+            "messageHandlerOptions": {
+                "maxConcurrentCalls": 1
+            }
+        }
     }
 }
