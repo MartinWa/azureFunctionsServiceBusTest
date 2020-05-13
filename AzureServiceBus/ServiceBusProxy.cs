@@ -2,11 +2,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Test.AzureServiceBus.Messages;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Test.AzureServiceBus.Messages;
 using Test.Settings;
 
 namespace Test.AzureServiceBus
@@ -21,30 +23,31 @@ namespace Test.AzureServiceBus
             _serviceBusSettings = serviceBusSettings.CurrentValue;
         }
 
-        public Task Send(string topic, IEnumerable<MessageBase> messages) => SendCore(topic, messages);
+        public Task Send(string topic, MessageBase evnt) => Send(topic, new[] {evnt});
+        public Task Send(string topic, IEnumerable<MessageBase> messages, int batchSize = Constants.BatchSizeServiceBus) => SendCore(topic, messages, batchSize);
 
-        public Task Send(string topic, params MessageBase[] messages) => SendCore(topic, messages);
-
-        private async Task SendCore(string topic, IEnumerable<MessageBase> messages)
+        private async Task SendCore(string topic, IEnumerable<MessageBase> messages, int batchSize)
         {
-            var enumerated = messages as MessageBase[] ?? messages.ToArray();
+            var enumerated = messages.ToList();
             if (!enumerated.Any())
                 return;
-
+                
             var client = _senders.GetOrAdd(topic, t =>
                 new Lazy<MessageSender>(() =>
                     new MessageSender(_serviceBusSettings.ConnectionStringSender, t)));
 
-            foreach (var batch in enumerated.Batch(Constants.BatchSizeServiceBus)) // ServiceBus has a max of 256KB (standard) and 1MB (premium). 
+            foreach (var batch in enumerated.Batch(batchSize)) // ServiceBus has a max of 256KB (standard) and 1MB (premium). 
             {
                 var batchPartitionKey = Guid.NewGuid().ToString("N");
-                await client.Value.SendAsync(batch.Select(x => new Message(x.AsJson())
+                await client.Value.SendAsync(batch.Select(x => new Message(ToByteArray(x))
                 {
                     ContentType = x.ContentType,
-                    MessageId = x.MessageId.ToString("N"),
+                    MessageId = x.MessageId.ToString(),
                     PartitionKey = batchPartitionKey
                 }).ToList());
             }
         }
+
+        private byte[] ToByteArray(MessageBase msg) => Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(msg));
     }
 }

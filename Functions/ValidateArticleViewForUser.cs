@@ -1,13 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using Test.AzureServiceBus;
+using Test.AzureServiceBus.Ids;
 using Test.AzureServiceBus.Messages;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System;
 using Test.Enums;
 
 namespace Test.Functions
@@ -36,7 +37,7 @@ namespace Test.Functions
                 AmendedLogTrace($"Validating ArticleView for ContentId: {message.ContentId}, Culture {message.Culture}", message);
 
                 // Code to do work
-                var nextMessage = new ArticleViewValidated(message.CorrelationId, message.CausationId)
+                var nextMessage = new ArticleViewValidated(MessageId.NewId, message.CorrelationId, CausationId.Create(message.MessageId))
                 {
                     FactId = message.FactId,
                     Location = message.Location,

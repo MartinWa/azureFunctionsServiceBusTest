@@ -6,7 +6,7 @@ namespace Test.AzureServiceBus
 {
     public interface IServiceBusProxy
     {
-        Task Send(string topic, IEnumerable<MessageBase> messages);
-        Task Send(string topic, params MessageBase[] message);
+        Task Send(string topic, IEnumerable<MessageBase> messages, int batchSize = Constants.BatchSizeServiceBus);
+        Task Send(string topic, MessageBase evnt);
     }
 }

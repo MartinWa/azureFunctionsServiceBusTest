@@ -1,12 +1,13 @@
 using System.Reflection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Test.Settings;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Test;
 using Test.AzureServiceBus;
+using Test.Settings;
 
-[assembly: FunctionsStartup(typeof(Test.Startup))]
+[assembly: FunctionsStartup(typeof(Startup))]
 namespace Test
 {
     public class Startup : FunctionsStartup

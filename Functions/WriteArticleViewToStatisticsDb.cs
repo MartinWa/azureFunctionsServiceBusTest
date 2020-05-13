@@ -1,13 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using Test.AzureServiceBus;
+using Test.AzureServiceBus.Ids;
 using Test.AzureServiceBus.Messages;
-using System.Collections.Generic;
-using System;
-using System.Diagnostics;
 using Test.Enums;
 
 namespace Test.Functions
@@ -56,7 +57,7 @@ namespace Test.Functions
         }
 
         private static IEnumerable<ArticleViewStoredInDb> BuildNextMessages(IEnumerable<ArticleViewValidated> messages) =>
-            messages.Select(msg => new ArticleViewStoredInDb(msg.CorrelationId, msg.CausationId)
+            messages.Select(msg => new ArticleViewStoredInDb(MessageId.NewId, msg.CorrelationId, CausationId.Create(msg.MessageId))
             {
                 ContentId = msg.ContentId,
                 PortalId = msg.PortalId,
@@ -82,7 +83,7 @@ namespace Test.Functions
             {
                 var messageModel = new ViewDbModel
                 {
-                    FactId = message.MessageId,
+                    FactId = message.FactId,
                     ContentId = message.ContentId,
                     Date = message.Timestamp.ToString(),
                     PortalId = message.PortalId,
@@ -98,7 +99,7 @@ namespace Test.Functions
                     AuthorUserId = message.AuthorUserId,
                     PlatformId = message.Platform
                 };
-                var userGroupModels = CreateUserGroupModels(message.MessageId, message.UserGroupIds);
+                var userGroupModels = CreateUserGroupModels(message.MessageId.Value, message.UserGroupIds);
                 return (messageModel, userGroupModels);
             });
 

@@ -1,15 +1,16 @@
 ﻿using System;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Test.AzureServiceBus.Messages;
+using Microsoft.Extensions.Logging;
 using Test.AzureServiceBus;
+using Test.AzureServiceBus.Ids;
+using Test.AzureServiceBus.Messages;
 using Test.Dto;
 using Test.Enums;
-using System.Collections.Generic;
 
 namespace Test.Functions
 {
@@ -34,7 +35,7 @@ namespace Test.Functions
             var messages = new List<ArticleViewed>();
             for (int i = 0; i < count; i++)
             {
-                messages.Add(new ArticleViewed(Guid.NewGuid())
+                messages.Add(new ArticleViewed(MessageId.NewId, CorrelationId.NewId)
                 {
                     FactId = Guid.NewGuid(),
                     ContentId = 0,

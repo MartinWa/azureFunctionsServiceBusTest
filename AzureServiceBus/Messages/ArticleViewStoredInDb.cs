@@ -1,4 +1,5 @@
 using System;
+using Test.AzureServiceBus.Ids;
 
 namespace Test.AzureServiceBus.Messages
 {
@@ -8,9 +9,6 @@ namespace Test.AzureServiceBus.Messages
         public int PortalId { get; set;}
         public DateTime StatisticStartDate { get; set; }
 
-        private ArticleViewStoredInDb() : base() { } 
-
-        public ArticleViewStoredInDb(Guid? correlationId, Guid? causationId) : base(Guid.NewGuid(), correlationId, causationId)
-        { }
+        public ArticleViewStoredInDb(MessageId messageId, CorrelationId correlationId, CausationId causationId) : base(messageId, correlationId, causationId) { }
     }
 }

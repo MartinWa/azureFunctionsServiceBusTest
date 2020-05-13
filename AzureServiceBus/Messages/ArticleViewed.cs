@@ -1,4 +1,5 @@
 using System;
+using Test.AzureServiceBus.Ids;
 using Test.Dto;
 
 namespace Test.AzureServiceBus.Messages
@@ -14,9 +15,6 @@ namespace Test.AzureServiceBus.Messages
         public int Platform { get; set; }
         public DateTime StatisticStartDate { get; set; }
 
-        private ArticleViewed() : base() { }
-
-        public ArticleViewed(Guid? correlationId) : base(Guid.NewGuid(), correlationId, null)
-        { }
+        public ArticleViewed(MessageId messageId, CorrelationId correlationId) : base(messageId, correlationId, CausationId.Empty) { }
     }
 }

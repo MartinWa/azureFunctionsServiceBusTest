@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Test.AzureServiceBus.Ids;
 using Test.Enums;
 
 namespace Test.AzureServiceBus.Messages
@@ -20,8 +21,6 @@ namespace Test.AzureServiceBus.Messages
         public IEnumerable<int> UserGroupIds { get; set; }
         public DateTime StatisticStartDate { get; set; }
 
-        private ArticleViewValidated() : base() { }
-
-        public ArticleViewValidated(Guid? correlationId, Guid? causationId) : base(Guid.NewGuid(), correlationId, causationId) { }
+        public ArticleViewValidated(MessageId messageId, CorrelationId correlationId, CausationId causationId) : base(messageId, correlationId, causationId) { }
     }
 }

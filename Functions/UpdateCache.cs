@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using Test.AzureServiceBus;
 using Test.AzureServiceBus.Messages;
-using System.Diagnostics;
 
 namespace Test.Functions
 {
