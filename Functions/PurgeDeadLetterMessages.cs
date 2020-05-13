@@ -26,7 +26,7 @@ namespace Test.Functions
         }
 
         [FunctionName("PurgeDeadLetterMessages")]
-        public async Task<IActionResult> RunPurgeDeadLetterMessages([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{topic}/{subscription}/purge")]HttpRequest req, string topic, string subscription)
+        public async Task<IActionResult> RunPurgeDeadLetterMessages([HttpTrigger(AuthorizationLevel.Function, "post", Route = "{topic}/{subscription}/purge")]HttpRequest req, string topic, string subscription)
         {
             var deadLetterPath = $"{topic}/Subscriptions/{subscription}/$deadletterqueue";
             try

@@ -26,7 +26,7 @@ namespace Test.Functions
         }
 
         [FunctionName("StatusMessages")]
-        public async Task<IActionResult> RunStatusMessages([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "status/messages")]HttpRequest req)
+        public async Task<IActionResult> RunStatusMessages([HttpTrigger(AuthorizationLevel.Function, "get", Route = "status/messages")]HttpRequest req)
         {
             try
             {

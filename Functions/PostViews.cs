@@ -26,7 +26,7 @@ namespace Test.Functions
         }
 
         [FunctionName("PostViews")]
-        public async Task<IActionResult> RunPostViews([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "postviews/{count}")]HttpRequest req, int count)
+        public async Task<IActionResult> RunPostViews([HttpTrigger(AuthorizationLevel.Function, "post", Route = "postviews/{count}")]HttpRequest req, int count)
         {
             if (count < 1 || count > 100000)
             {

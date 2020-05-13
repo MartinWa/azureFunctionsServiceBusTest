@@ -17,7 +17,7 @@ namespace Test.Functions
         }
 
         [FunctionName("Status")]
-        public IActionResult RunStatus([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "status")]HttpRequest req)
+        public IActionResult RunStatus([HttpTrigger(AuthorizationLevel.Function, "get", Route = "status")]HttpRequest req)
         {
             var now = DateTime.Now;
             try
