@@ -41,7 +41,7 @@
         public const int AzureSearchExpRetryAttemps = 4; // Wait for a max total of 30s 
         public const int BatchSizeAzure = 500;
         public const int BatchSizeRedis = 100;
-        public const int BatchSizeServiceBus = 300;
+        public const int BatchSizeServiceBus = 200;
         public const int BatchSizeStatisticsDb = 250;
         public const int BatchSizeAzureSearchFilter = 50;
         public const string ZeroImageTag = "data-zero-img";
